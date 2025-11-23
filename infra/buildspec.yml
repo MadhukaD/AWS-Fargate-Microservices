@@ -1,0 +1,61 @@
+version: 0.2
+
+env:
+  variables:
+    # region & ecr repo are replaced with actuals in the CodeBuild project or via environment variables
+    AWS_REGION: "ap-southeast-1"
+    ECR_ACCOUNT: "348184816643"
+    ECR_REPO_USER: "user-service"
+    ECR_REPO_PRODUCT: "product-service"
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - aws --version
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com
+      - echo "Install Trivy"
+      - wget -qO trivy.tar.gz https://github.com/aquasecurity/trivy/releases/latest/download/trivy_$(uname -s)_$(uname -m).tar.gz || true
+      - mkdir -p /tmp/trivy && tar -xzf trivy.tar.gz -C /tmp/trivy || true
+      - chmod +x /tmp/trivy/trivy || true
+      - export PATH=$PATH:/tmp/trivy
+      - echo "Set SHORT_SHA"
+      - SHORT_SHA=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${SHORT_SHA:-latest}
+      - echo "IMAGE_TAG=$IMAGE_TAG"
+  build:
+    commands:
+      - echo "Building user-service image..."
+      - cd user-service
+      - docker build -t $ECR_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_USER:$IMAGE_TAG .
+      - echo "Scanning user-service image with Trivy..."
+      - /tmp/trivy/trivy image --exit-code 1 --severity CRITICAL --no-progress $ECR_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_USER:$IMAGE_TAG || (echo "Critical vulnerabilities detected in user-service" && exit 1)
+      - cd ..
+      - echo "Building product-service image..."
+      - cd product-service
+      - docker build -t $ECR_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_PRODUCT:$IMAGE_TAG .
+      - echo "Scanning product-service image with Trivy..."
+      - /tmp/trivy/trivy image --exit-code 1 --severity CRITICAL --no-progress $ECR_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_PRODUCT:$IMAGE_TAG || (echo "Critical vulnerabilities detected in product-service" && exit 1)
+      - cd ..
+  post_build:
+    commands:
+      - echo "Tagging and pushing images to ECR..."
+      - docker push $ECR_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_USER:$IMAGE_TAG
+      - docker push $ECR_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_PRODUCT:$IMAGE_TAG
+      - echo "Generating imagedefinitions.json for CodeDeploy..."
+      - IMAGE_URI_USER=$ECR_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_USER:$IMAGE_TAG
+      - IMAGE_URI_PRODUCT=$ECR_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_PRODUCT:$IMAGE_TAG
+      - mkdir -p imagedef
+      - cat > imagedef/imagedefinitions.json <<EOF
+          [
+            {"name":"user-service","imageUri":"$IMAGE_URI_USER"},
+            {"name":"product-service","imageUri":"$IMAGE_URI_PRODUCT"}
+          ]
+        EOF
+      - echo "imagedefinitions.json:"
+      - cat imagedef/imagedefinitions.json
+artifacts:
+  files:
+    - imagedef/imagedefinitions.json
+    - infra/appspec.yaml
+    - infra/ecs-task-def-user.json
+    - infra/ecs-task-def-product.json

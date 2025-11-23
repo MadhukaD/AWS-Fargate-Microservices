@@ -1,0 +1,9 @@
+version: 0.0
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: "USER_TASK_DEFINITION"   # replaced by CodePipeline/CodeBuild with new task def ARN or left as placeholder
+        LoadBalancerInfo:
+          ContainerName: "user-service"
+          ContainerPort: 3001
