@@ -53,10 +53,10 @@ Open the AWS Management Console, go to CodeBuild service.
 - In Source, choose GitHub (connect your GitHub repo with OAuth or token).
 - Specify the repo and the branch you want to build.
 - Environment Configuration:
--- Environment image: Choose Managed image.
--- Operating system: Amazon Linux 2.
--- Runtime: Standard.
--- Image: aws/codebuild/standard:5.0 (supports Docker).
+    - Environment image: Choose Managed image.
+    - Operating system: Amazon Linux 2.
+    - Runtime: Standard.
+    - Image: aws/codebuild/standard:5.0 (supports Docker).
 - Enable Privileged mode (important for Docker build).
 - Service role: Choose the IAM role you created for CodeBuild (with ECR, ECS, and CloudWatch permissions).
 - Buildspec: Either use a buildspec.yml file in your repo root (recommended) or provide inline build commands. Use the earlier shared buildspec.yml example (adjust IMAGE_REPO_NAME and other variables).
