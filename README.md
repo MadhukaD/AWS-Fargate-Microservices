@@ -1,25 +1,35 @@
 # Creating ECR repositories
+```
 aws ecr create-repository --repository-name product-service --region ap-southeast-1
 aws ecr create-repository --repository-name user-service --region ap-southeast-1
+```
 
 # Authenticate Docker to your ECR registry
+```
 aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 348184816643.dkr.ecr.ap-southeast-1.amazonaws.com
+```
 
 # Build Docker images locally
+```
 cd user-service
 npm install
 docker build -t user-service .
 cd ../product-service
 npm install
 docker build -t product-service .
+```
 
 # Tag your Docker images to point to ECR repositories
+```
 docker tag user-service:latest 348184816643.dkr.ecr.ap-southeast-1.amazonaws.com/user-service:latest
 docker tag product-service:latest 348184816643.dkr.ecr.ap-southeast-1.amazonaws.com/product-service:latest
+```
 
 # Push the tagged images to ECR
+```
 docker push 348184816643.dkr.ecr.ap-southeast-1.amazonaws.com/user-service:latest
 docker push 348184816643.dkr.ecr.ap-southeast-1.amazonaws.com/product-service:latest
+```
 
 # Create the IAM role for CodeBuild
 Go to IAM and create a new role

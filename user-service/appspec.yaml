@@ -1,0 +1,10 @@
+version: 1
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: <USER_TASK_DEF_ARN_OR_PLACEHOLDER>
+        LoadBalancerInfo:
+          ContainerName: user-service
+          ContainerPort: 3001
+        PlatformVersion: LATEST
