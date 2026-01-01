@@ -7,13 +7,13 @@ variable "name_prefix" {
 variable "aws_access_key" {
   description = "instance_type of VM"
   type        = string
-  default     = "AKIAVCELOVQB76BSVD5E"
+  default     = "YourAccessKey"
 }
 
 variable "aws_secret_key" {
   description = "instance_type of VM"
   type        = string
-  default     = "K4WP7J97nPkDnkh+UZr4YwMpgYsW0c1u+kO5mLFn" 
+  default     = "YourSecretKey" 
 }
 
 variable "aws_region" {
