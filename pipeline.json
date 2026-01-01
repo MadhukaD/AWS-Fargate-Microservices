@@ -1,0 +1,123 @@
+{
+  "pipeline": {
+    "name": "fargate-microservices-pipeline",
+    "roleArn": "arn:aws:iam::348184816643:role/service-role/fargate-microservices-AWSCodePipelineServiceRole",
+    "artifactStore": {
+      "type": "S3",
+      "location": "codepipeline-ap-southeast-1-145f0fc8b4db-4d70-9318-967c8898b836"
+    },
+    "stages": [
+      {
+        "name": "Source",
+        "actions": [
+          {
+            "name": "SourceFromCodeCommit",
+            "actionTypeId": {
+              "category": "Source",
+              "owner": "AWS",
+              "provider": "CodeCommit",
+              "version": "1"
+            },
+            "runOrder": 1,
+            "configuration": {
+              "RepositoryName": "fargate-microservices",
+              "BranchName": "master",
+              "PollForSourceChanges": "false"
+            },
+            "outputArtifacts": [
+              { "name": "SourceOutput" }
+            ],
+            "inputArtifacts": []
+          }
+        ]
+      },
+      {
+        "name": "Build",
+        "actions": [
+          {
+            "name": "BuildUserService",
+            "actionTypeId": {
+              "category": "Build",
+              "owner": "AWS",
+              "provider": "CodeBuild",
+              "version": "1"
+            },
+            "runOrder": 1,
+            "configuration": {
+              "ProjectName": "user-service-build"
+            },
+            "outputArtifacts": [
+              { "name": "UserBuildOutput" }
+            ],
+            "inputArtifacts": [
+              { "name": "SourceOutput" }
+            ]
+          },
+          {
+            "name": "BuildProductService",
+            "actionTypeId": {
+              "category": "Build",
+              "owner": "AWS",
+              "provider": "CodeBuild",
+              "version": "1"
+            },
+            "runOrder": 1,
+            "configuration": {
+              "ProjectName": "product-service-build"
+            },
+            "outputArtifacts": [
+              { "name": "ProductBuildOutput" }
+            ],
+            "inputArtifacts": [
+              { "name": "SourceOutput" }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Deploy",
+        "actions": [
+          {
+            "name": "DeployUserService",
+            "actionTypeId": {
+              "category": "Deploy",
+              "owner": "AWS",
+              "provider": "ECS",
+              "version": "1"
+            },
+            "runOrder": 1,
+            "configuration": {
+              "ClusterName": "fargate-microservices-cluster",
+              "ServiceName": "user-service",
+              "FileName": "user-service/imagedefinitions.json"
+            },
+            "outputArtifacts": [],
+            "inputArtifacts": [
+              { "name": "UserBuildOutput" }
+            ]
+          },
+          {
+            "name": "DeployProductService",
+            "actionTypeId": {
+              "category": "Deploy",
+              "owner": "AWS",
+              "provider": "ECS",
+              "version": "1"
+            },
+            "runOrder": 1,
+            "configuration": {
+              "ClusterName": "fargate-microservices-cluster",
+              "ServiceName": "product-service",
+              "FileName": "product-service/imagedefinitions.json"
+            },
+            "outputArtifacts": [],
+            "inputArtifacts": [
+              { "name": "ProductBuildOutput" }
+            ]
+          }
+        ]
+      }
+    ],
+    "version": 1
+  }
+}

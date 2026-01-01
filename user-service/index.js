@@ -5,7 +5,9 @@ app.use(express.json());
 
 let users = [
   { id: 1, name: "Alice" },
-  { id: 2, name: "Bob" }
+  { id: 2, name: "Bob" },
+  { id: 3, name: "Jason" },
+  { id: 4, name: "Shane" }
 ];
 
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'user-service' }));

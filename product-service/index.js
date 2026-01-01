@@ -5,7 +5,9 @@ app.use(express.json());
 
 let products = [
   { id: 1, name: "Widget" },
-  { id: 2, name: "Gadget" }
+  { id: 2, name: "Gadget" },
+  { id: 3, name: "Widget" },
+  { id: 4, name: "Gadget" }
 ];
 
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'product-service' }));
