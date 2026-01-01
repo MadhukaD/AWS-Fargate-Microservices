@@ -1,30 +1,31 @@
 variable "name_prefix" {
-  description = "Common name prefix for all network resources"
-  type        = string
+  type = string
 }
 
 variable "vpc_cidr" {
-  description = "VPC CIDR block"
-  type        = string
+  type = string
 }
 
-variable "azs" {
-  description = "Availability zones"
-  type        = list(string)
+variable "aws_region" {
+  type = string
 }
 
-variable "public_subnets_cidr" {
-  description = "Public subnet CIDR blocks (1 per AZ)"
-  type        = list(string)
+variable "public_subnet_01_cidr" {
+  type = string
 }
 
-variable "private_subnets_cidr" {
-  description = "Private subnet CIDR blocks (1 per AZ)"
-  type        = list(string)
+variable "public_subnet_02_cidr" {
+  type = string
 }
 
-variable "tags" {
-  description = "Common tags"
-  type        = map(string)
-  default     = {}
+variable "private_subnet_01_cidr" {
+  type = string
+}
+
+variable "private_subnet_02_cidr" {
+  type = string
+}
+
+variable "map_public_ip_on_launch" {
+  type = bool
 }

@@ -3,32 +3,52 @@ output "vpc_id" {
   value       = module.vpc.vpc_id
 }
 
-output "public_subnets" {
-  description = "Public subnet IDs"
-  value       = module.vpc.public_subnets
+output "public_subnet_01_id" {
+  description = "Public subnet 01 ID"
+  value       = module.vpc.public_subnet_01_id
 }
 
-output "private_subnets" {
-  description = "Private subnet IDs"
-  value       = module.vpc.private_subnets
+output "public_subnet_02_id" {
+  description = "Public subnet 02 ID"
+  value       = module.vpc.public_subnet_02_id
 }
 
-output "nat_public_ips" {
-  description = "NAT Gateway public IPs"
-  value       = module.vpc.nat_public_ips
+output "private_subnet_01_id" {
+  description = "Private subnet 01 ID"
+  value       = module.vpc.private_subnet_01_id
 }
 
-output "public_route_table_ids" {
-  description = "Public route table IDs"
-  value       = module.vpc.public_route_table_ids
+output "private_subnet_02_id" {
+  description = "Private subnet 02 ID"
+  value       = module.vpc.private_subnet_02_id
 }
 
-output "private_route_table_ids" {
-  description = "Private route table IDs"
-  value       = module.vpc.private_route_table_ids
-}
-
-output "igw_id" {
+output "internet_gateway_id" {
   description = "Internet Gateway ID"
-  value       = module.vpc.igw_id
+  value       = module.vpc.internet_gateway_id
+}
+
+output "nat_gateway_id" {
+  description = "NAT Gateway ID"
+  value       = module.vpc.nat_gateway_id
+}
+
+output "security_group_id" {
+  description = "Security Group ID"
+  value       = module.security.security_group_id
+}
+
+output "ec2_instance_id" {
+  description = "Instance ID"
+  value       = module.ec2.instance_id
+}
+
+output "ec2_public_ip" {
+  description = "Instance public IP (use to SSH)"
+  value       = module.ec2.public_ip
+}
+
+output "private_key_file" {
+  description = "Local private key file saved by Terraform (use chmod 600 on this file before SSH)"
+  value       = module.security.private_key_path
 }
