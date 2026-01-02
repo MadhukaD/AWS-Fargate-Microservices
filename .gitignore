@@ -1,0 +1,14 @@
+# Terraform
+**/.terraform/*
+**/*.tfstate
+**/*.tfstate.backup
+**/*.tfplan
+
+# Optional: Terraform lock file (usually safe to commit, so commented)
+# **/.terraform.lock.hcl
+
+# Node
+node_modules/
+
+# OS
+.DS_Store

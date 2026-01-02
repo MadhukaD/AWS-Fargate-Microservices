@@ -5,13 +5,13 @@ variable "name_prefix" {
 }
 
 variable "aws_access_key" {
-  description = "instance_type of VM"
+  description = "AWS access key"
   type        = string
   default     = "YourAccessKey"
 }
 
 variable "aws_secret_key" {
-  description = "instance_type of VM"
+  description = "AWS secret key"
   type        = string
   default     = "YourSecretKey" 
 }

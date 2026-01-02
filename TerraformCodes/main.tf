@@ -43,3 +43,12 @@ module "alb" {
 
   alb_sg_id = module.security.security_group2_id
 }
+
+# ────────────────────────────────
+# CodeCommit Repositories & ECR Repositories
+# ────────────────────────────────
+module "codecommit_ecr" {
+  source = "./modules/codecommit&ecr"
+
+  name_prefix = var.name_prefix
+}

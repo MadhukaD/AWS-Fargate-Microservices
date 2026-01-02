@@ -1,3 +1,4 @@
+# VPC and Subnet Outputs
 output "vpc_id" {
   description = "VPC ID"
   value       = module.vpc.vpc_id
@@ -38,6 +39,7 @@ output "nat_gateway2_id" {
   value       = module.vpc.nat_gateway2_id
 }
 
+# Security Group Outputs
 output "security_group1_id" {
   description = "Security Group1 ID"
   value       = module.security.security_group1_id
@@ -48,6 +50,7 @@ output "security_group2_id" {
   value       = module.security.security_group2_id
 }
 
+# ALB and Target Group Outputs
 output "alb_name" {
   description = "Name of the Application Load Balancer"
   value       = module.alb.alb_name
@@ -81,4 +84,55 @@ output "product_target_group_arn" {
 output "http_listener_arn" {
   description = "ARN of the HTTP listener (port 80)"
   value       = module.alb.http_listener_arn
+}
+
+# CodeCommit and ECR Outputs
+output "codecommit_repository_name" {
+  description = "Name of the CodeCommit repository"
+  value       = module.codecommit_ecr.codecommit_repository_name
+}
+
+output "codecommit_repository_arn" {
+  description = "ARN of the CodeCommit repository"
+  value       = module.codecommit_ecr.codecommit_repository_arn
+}
+
+output "codecommit_clone_url_http" {
+  description = "HTTP clone URL of the CodeCommit repository"
+  value       = module.codecommit_ecr.codecommit_clone_url_http
+}
+
+output "codecommit_clone_url_ssh" {
+  description = "SSH clone URL of the CodeCommit repository"
+  value       = module.codecommit_ecr.codecommit_clone_url_ssh
+}
+
+output "user_ecr_repository_name" {
+  description = "ECR repository name for user service"
+  value       = module.codecommit_ecr.user_ecr_repository_name
+}
+
+output "user_ecr_repository_arn" {
+  description = "ARN of the user service ECR repository"
+  value       = module.codecommit_ecr.user_ecr_repository_arn
+}
+
+output "user_ecr_repository_url" {
+  description = "Repository URL for user service ECR"
+  value       = module.codecommit_ecr.user_ecr_repository_url
+}
+
+output "product_ecr_repository_name" {
+  description = "ECR repository name for product service"
+  value       = module.codecommit_ecr.product_ecr_repository_name
+}
+
+output "product_ecr_repository_arn" {
+  description = "ARN of the product service ECR repository"
+  value       = module.codecommit_ecr.product_ecr_repository_arn
+}
+
+output "product_ecr_repository_url" {
+  description = "Repository URL for product service ECR"
+  value       = module.codecommit_ecr.product_ecr_repository_url
 }
