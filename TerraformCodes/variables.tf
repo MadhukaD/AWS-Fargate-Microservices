@@ -4,18 +4,6 @@ variable "name_prefix" {
   default     = "fargate-microservices"
 }
 
-variable "aws_access_key" {
-  description = "AWS access key"
-  type        = string
-  default     = "YourAccessKey"
-}
-
-variable "aws_secret_key" {
-  description = "AWS secret key"
-  type        = string
-  default     = "YourSecretKey" 
-}
-
 variable "aws_region" {
   description = "AWS region to deploy into"
   type        = string

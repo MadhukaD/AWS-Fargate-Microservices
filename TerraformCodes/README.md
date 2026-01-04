@@ -1,105 +1,69 @@
-# Grafana dashboard for monitoring linux-based system metrics
-This repo contains Grafana dashboard I created to display system metrics such as CPU and Memory usage, etc of an ubuntu server.
+# Terraform codes for the project
 
-I have provisioned the ubuntu server in AWS as an EC2 instance using Terraform. 
+These Terraform codes provision an **AWS ECS Fargate** environment for microservices, including networking, security, CI/CD pipelines, and application deployment.
 
-This project uses a module-based Terraform architecture to keep the infrastructure code clean, reusable, and easy to maintain. Each major AWS component is separated into its own module, allowing us to manage resources independently while keeping the root configuration simple and organized.
+## Structure
 
-<img width="260" height="363" alt="image" src="https://github.com/user-attachments/assets/ef26bccb-dcc3-47a8-8d70-5fcf250528ab" />
+The project is modularized for better maintainability. The directory structure is as follows:
 
-## Step by Step Guide
-### 1. Provision the server
-First, clone the project. Then edit the variables.tf file in root directory with region, CIDR block for VPC, subnets, AMI and other variables as you prefer.
 
-Note: You must add your own access key and secret key in relevant variable blocks.
 
-After configuring the files, run below commands to deploy the server.
+## Modules Overview
 
-```
-terraform init
-terraform plan
-terraform apply --auto-approve
-```
+### VPC Module
+- Creates VPC, two public and two private subnets across AZs, Internet Gateway, two Elastic IPs and NAT Gateways, public and per-private route tables, and associations.
+- Public RT routes `0.0.0.0/0` to IGW; each private RT routes `0.0.0.0/0` via a NAT GW. Suitable for private ECS tasks with outbound via NAT.
 
-`install_docker_grafana_prom.sh` file will,
-- Update the packages
-- Install Docker
-- Add `ubuntu` user to `docker` group and refresh group membership without re-login
-- Deploy `grafana`, `prometheus` and `node-exporter` containers
+### Security Module
+- Creates two security groups: ALB (`ecs_alb_sg`) and ECS tasks (`ecs_tasks_sg`).
+- Ingress: ALB SG allows HTTP (TCP 80) from `0.0.0.0/0`; tasks SG allows only traffic from ALB SG on service ports 3001 (user) and 3002 (product).
+- Egress: tasks SG allows all outbound; ALB has explicit egress rules toward tasks on 3001/3002. Tight, least-privilege rules linking ALB ↔ tasks.
 
-#### Explanation for Docker commands used in the script file
-**Grafana:**
+### ALB Module
+- Provisions an internet-facing Application Load Balancer with provided ALB SG and two public subnets.
+- Defines two target groups (`user_tg` with port 3001, `product_tg` port with 3002) with HTTP health checks on `/health`.
+- Listener on port 80 with listener rules that forward paths `/users*` → user TG and `/products*` → product TG.
 
-```
-docker run -d --name=grafana --network monitoring -p 3000:3000 grafana/grafana
-```
+### CodeCommit & ECR Module
+- Creates a CodeCommit repository (single repo named `${name_prefix}-code-repo`).
+- Creates two ECR repositories: `user-service` and `product-service`, with `scan_on_push = true` and mutable tags.
+- Intended to host source and container images for CI/CD; enable lifecycle/image-scan policies as needed.
 
-Explanation for Docker command:
+### CodeBuild Module
+- Sample CodeBuild project with supporting S3 bucket for cache/logs, IAM role + policy allowing logs, EC2/VPC operations, S3, and CodeStar Connections.
+- `aws_codebuild_project` configured with environment, artifacts (NO_ARTIFACTS), S3 cache, VPC config (subnets + SGs), and source (CODECOMMIT/Git URL placeholder).
+- Notes: the project uses an IAM role with broad example permissions and references example subnets/SG ARNs—adapt resource names, tighten IAM, and enable ECR permissions (ecr:*) for real Docker build/push flows.
 
-- -d: Runs the container in detached mode, allowing it to run in the background.
-- --name=grafana: Names the container “grafana” for easier management.
-- -p 3000:3000: Maps port 3000 on the Docker host to port 3000 on the container, making Grafana accessible at http://server-ip:3000.
+## Terraform Backend
+- The project uses a `backend.tf` file to configure remote state storage (e.g., S3 and DynamoDB).
 
-**Prometheus:**
-```
-docker run -d --name=prometheus --network monitoring -p 9090:9090 -v /path/to/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
-```
-Explanation for Docker command:
+## Getting Started
 
-- -v /path/to/prometheus.yml:/etc/prometheus/prometheus.yml: Mounts the configuration file from the host to the container.
+1. **Clone the repository:**
+   ```bash
+   git clone <repository_url>
+   cd TerraformCodes
+   ```
 
-### 2. Access Grafana and Prometheus
+2. **Initialize Terraform:**
+   ```bash
+   terraform init
+   ```
 
-#### 2.1 Access Grafana on Docker Host:
+3. **Plan the infrastructure:**
+   ```bash
+   terraform plan
+   ```
 
-Open a browser and go to http://server-ip:3000.
-Log in with the default credentials: Username: admin | Password: admin. (You’ll be prompted to change the password after logging in.)
+4. **Apply the infrastructure:**
+   ```bash
+   terraform apply
+   ```
 
-<img width="1366" height="768" alt="Grafana_landingPage" src="https://github.com/user-attachments/assets/1ccb570d-0011-4e23-a388-af335babe86b" />
+## Variables
+- Root-level and module-specific variables are defined in variables.tf and module variables.tf files.
+- Configure variables such as VPC CIDR, subnets, ECS cluster name, ALB listeners, etc.
 
-#### 2.2 Access Prometheus:
-
-Open a browser and go to http://server-ip:9090 to access the Prometheus interface.
-
-<img width="1366" height="768" alt="Prometheus_dashboard" src="https://github.com/user-attachments/assets/8a571a88-1dea-43d7-ad10-b076b63feaed" />
-
-### 3. Setup the Data source
-
-1. **Log in to Grafana**
-   - Open your browser and go to: `http://server-ip:3000`
-   - Enter your credentials to log in
-
-2. **Navigate to Data Sources**
-   - Click the **gear icon (⚙️)** in the left sidebar
-   - Select **"Data Sources"**
-
-3. **Add a New Data Source**
-   - Click the **"Add data source"** button
-   - Choose **"Prometheus"** from the list
-
-4. **Configure Prometheus Settings in Connection section**
-   - **Prometheus server URL**: Enter the Prometheus server URL (e.g., `http://prometheus:9090`)
-  
-      <img width="701" height="136" alt="Screenshot 2025-11-17 163623" src="https://github.com/user-attachments/assets/7caddb2c-8c76-4849-be06-258ba4e4a734" />
-
-5. **Test and Save**
-   - Click **"Test"** to verify the connection
-   - If successful, click **"Save & Test"**
-
-### 4. Import Prebuilt Dashboard
-
-1. **Create Dashboard**
-   - In the home page of Grafana, select **Create your first dashboard**
-
-2. **Import Dashboard**
-   - Click the **plus icon (+)** in the left sidebar
-   - Select **“Import”**
-   - Enter **Dashboard ID: `1860`** (Node Exporter Full)
-   - Click **“Load”**
-
-3. **Configure Data Source**
-   - Select your Prometheus data source
-   - Click **“Import”**
-
-4. **Save the Dashboard**
-<img width="1365" height="507" alt="Screenshot 2025-11-17 164050" src="https://github.com/user-attachments/assets/1cfbbee8-a303-4164-88cf-fa85e23d1a92" />
+## Outputs
+- Root-level outputs are defined in outputs.tf.
+- Each module also exposes specific outputs (e.g., ALB DNS name, security group IDs, repository URLs).
